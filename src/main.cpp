@@ -5,9 +5,6 @@
 // Created:     2023-02-10
 // Licence:     LGPL
 /////////////////////////////////////////////////////////////////////////////
-// In linux:
-// install libcurl4-openssl-dev
-// ../configure --enable-debug --with-opengl --with-gtk=3 --disable-shared --enable-webrequest
 
 #ifdef _WIN32
 #include <Windows.h>
