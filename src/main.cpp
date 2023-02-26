@@ -781,7 +781,9 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size, 
     vSizerNewProfile = new wxBoxSizer(wxVERTICAL);
     wxFlexGridSizer *gridSizerNewProfile = new wxFlexGridSizer(3, 3, 7);
     wxStaticText *newProfileNameLabel = new wxStaticText(newProfilePanel, wxID_ANY, "Profile Name:");
-    newProfileName = new wxTextCtrl(newProfilePanel, wxID_ANY, "");
+    newProfileName = new wxTextCtrl(newProfilePanel, wxID_ANY, "",wxDefaultPosition,wxSize(350,wxDefaultSize.GetHeight()));
+    auto newProfileSize = newProfileName->GetSize();
+    newProfileName->SetSize(500,newProfileSize.GetHeight());
     newProfileName->SetInsertionPoint(0);
     newProfileOnline = new wxCheckBox(newProfilePanel, wxID_ANY, "Download files automatically");
     newProfileOnline->Bind(wxEVT_CHECKBOX, &MyFrame::OnNewProfileOnline, this);
@@ -806,7 +808,7 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size, 
     newProfileSaveButton->Bind(wxEVT_BUTTON, &MyFrame::OnNewProfileSaveButton, this);
     gridSizerNewProfile->Add(newProfileNameLabel);
     gridSizerNewProfile->AddSpacer(1);
-    gridSizerNewProfile->Add(newProfileName);
+    gridSizerNewProfile->Add(newProfileName,wxEXPAND | wxALL);
     gridSizerNewProfile->Add(newProfileOnline);
     gridSizerNewProfile->AddSpacer(1);
     gridSizerNewProfile->AddSpacer(1);
@@ -827,21 +829,20 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size, 
     gridSizerNewProfile->Add(newProfileCHDTargetFolder);
 
     gridSizerNewProfile->Add(newProfileCancelButton);
-    gridSizerNewProfile->Add(newProfileSaveButton);
+    gridSizerNewProfile->Add(newProfileSaveButton,wxEXPAND | wxALL);
     newProfilePanel->SetSizer(vSizerNewProfile);
-    vSizerNewProfile->Add(gridSizerNewProfile);
+    vSizerNewProfile->Add(gridSizerNewProfile,wxEXPAND | wxALL);
     newProfileROMSourceFolderButton->Bind(wxEVT_BUTTON, &MyFrame::OnNewProfileROMSourceFolderButton, this);
     newProfileCHDSourceFolderButton->Bind(wxEVT_BUTTON, &MyFrame::OnNewProfileCHDSourceFolderButton, this);
     newProfileROMTargetFolderButton->Bind(wxEVT_BUTTON, &MyFrame::OnNewProfileROMTargetFolderButton, this);
     newProfileCHDTargetFolderButton->Bind(wxEVT_BUTTON, &MyFrame::OnNewProfileCHDTargetFolderButton, this);
     newProfileCancelButton->Bind(wxEVT_BUTTON, &MyFrame::OnNewProfileCancelButton, this);
 
+/*EDIT PROFILE*/
     vSizerEditProfile = new wxBoxSizer(wxVERTICAL);
     gridSizerEditProfile = new wxFlexGridSizer(3, 3, 7);
-
-    /*EDIT PROFILE*/
     wxStaticText *editProfileNameLabel = new wxStaticText(editProfilePanel, wxID_ANY, "Profile Name:");
-    editProfileName = new wxTextCtrl(editProfilePanel, wxID_ANY, "");
+    editProfileName = new wxTextCtrl(editProfilePanel, wxID_ANY, "",wxDefaultPosition,wxSize(350,wxDefaultSize.GetHeight()));
     editProfileName->SetInsertionPoint(0);
     editProfileOnline = new wxCheckBox(editProfilePanel, wxID_ANY, "Download files automatically");
     editProfileOnline->Bind(wxEVT_CHECKBOX, &MyFrame::OnEditProfileOnline, this);
@@ -964,6 +965,8 @@ void MyFrame::OnProfileChange(wxCommandEvent &event)
 {
 
     if (profile_map.empty()) {
+        vSizer->Hide(hSizerLoad);
+        vSizer->Hide(hSizerRunButtons);
         mainBook->book->ChangeSelection(romperNewProfile);
         profileEditButton->Hide();
         vSizer->Hide(hSizerRunButtons);
@@ -1003,6 +1006,7 @@ void MyFrame::OnNewProfile(wxCommandEvent &event)
 void MyFrame::OnEditProfile(wxCommandEvent &event)
 {
     vSizer->Hide(hSizerLoad);
+    vSizer->Hide(hSizerRunButtons);
     std::string name = profileChoice->choice->GetStringSelection().ToStdString();
     editProfileName->SetValue(name);
     if (profile_map[name].online == 1)
