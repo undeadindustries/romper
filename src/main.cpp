@@ -37,7 +37,7 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 
 //Set version
-const std::string VERSION = "2023-2-23";
+const std::string VERSION = "2023-4-11";
 
 //Set default new line char for each OS.
 #ifdef _WIN32
@@ -74,6 +74,9 @@ std::string rtrim(const std::string &s);
 std::string ltrim(const std::string &s);
 std::string trim(const std::string &s);
 std::string GetExeDirectory();
+
+/*The Profile DB should be in the user's folder. What should it's filename be? Create it if it doesn't exist.*/
+std::string getProfileDatabasePath();
 
 /*Check if a string is in an vector*/
 bool in_array(const std::string &needle, const std::vector<std::string> &haystack);
@@ -257,14 +260,59 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
             wxEND_EVENT_TABLE()
                 wxIMPLEMENT_APP(MyApp);
 
+
+std::string getProfileDatabasePath()
+{
+    std::string databasePath;
+    std::string configDir;
+    try {
+        // Determine the correct configuration directory
+        #ifdef _WIN32
+            configDir = getenv("APPDATA");
+            configDir += "\\Romper\\";
+        #else
+            configDir = getenv("HOME");
+            configDir += "/.Romper/";
+        #endif
+
+        // Create the configuration directory if it does not exist
+        std::filesystem::create_directories(configDir);
+
+        // Build the full database path
+        databasePath = configDir + "profiles.romper";
+
+        // Check if the file exists, and create it if it does not
+        if (!std::filesystem::exists(databasePath)) {
+            std::filesystem::create_directories(configDir);
+
+            SQLite::Database db(databasePath, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+            db.exec("CREATE TABLE \"games\" (\"profile\" TEXT NOT NULL, \"game\" TEXT NOT NULL, CONSTRAINT \"unqProfileGame\" UNIQUE(\"game\",\"profile\"));");
+            db.exec("CREATE TABLE \"profiles\" (\"name\" TEXT NOT NULL UNIQUE, \"online\" INTEGER NOT NULL, \"romSource\" TEXT, \"chdSource\" TEXT, \"romTarget\" TEXT, \"chdTarget\" TEXT, PRIMARY KEY(\"name\"));");
+            db.exec("CREATE INDEX \"idxgames\" ON \"games\" (\"game\");");
+            db.exec("CREATE INDEX \"idxprofile\" ON \"games\" (\"profile\");");
+        }
+    } catch (const std::exception& e) {
+        wxMessageBox(e.what(), "Create Profile DB Error", wxOK | wxICON_INFORMATION);
+        return "";
+    }
+
+    return databasePath;
+}
+
+
+
 //This acts at main(). Calls the class to create the Window
 bool MyApp::OnInit()
 {
     try
     {
         auto romperFolder = GetExeDirectory();
-        std::string profileDBFile = romperFolder + "/data/profiles.romper";
-        std::string gameDBFile = romperFolder + "/data/romper.romper";
+        std::string profileDBFile = getProfileDatabasePath();
+        if (profileDBFile == "") {
+            return false;
+        }
+        //std::string profileDBFile = romperFolder + "/romper_data/profiles.romper";
+        std::string gameDBFile = romperFolder + "/romper_data/romper.romper";
         MyFrame *frame = new MyFrame("Romper", wxPoint(50, 50), wxSize(800, 600), profileDBFile, gameDBFile);
         frame->Refresh();
         frame->Show(true);
@@ -1526,7 +1574,7 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
             }
             if (runErrors.size() < 1)
             {
-                DisplayMessage("Finised with no errors!");
+                DisplayMessage("Finished with no errors!");
             }
             else
             {
