@@ -33,3 +33,9 @@ src/.vscode/
 *.exe
 *.out
 *.app
+
+# Camke
+build/
+
+# AppImage
+romper.AppDir/
