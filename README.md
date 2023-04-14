@@ -43,8 +43,9 @@ The m_ standard naming for variables is not used because almost everything is a 
 
 ## Getting Started / Downloading
 
-Download and unzip the latest release for your system.  
-Run the executable named romper or romper.exe.  
+Download the latest release: https://github.com/undeadindustries/romper/releases
+If you are in Linux, installed Fuse2. https://github.com/AppImage/AppImageKit/wiki/FUSE
+There should me instructions on the release page on how to run the current version.  
 You will be prompted to create your first profile.  
 ![](https://user-images.githubusercontent.com/9536461/221396822-ca925ab1-c7a6-4003-b0a7-3f8157fc10c4.png)  
   
