@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Romper
+Exec=romper
+Icon=romper
+Comment=Manager you MAME files
+Categories=Utility
+Terminal=false

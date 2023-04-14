@@ -1,0 +1,20 @@
+CREATE TABLE "games" (
+	"profile"	TEXT NOT NULL,
+	"game"	TEXT NOT NULL,
+	CONSTRAINT "unqProfileGame" UNIQUE("game","profile")
+)
+CREATE TABLE "profiles" (
+	"name"	TEXT NOT NULL UNIQUE,
+	"online"	INTEGER NOT NULL,
+	"romSource"	TEXT,
+	"chdSource"	TEXT,
+	"romTarget"	TEXT,
+	"chdTarget"	TEXT,
+	PRIMARY KEY("name")
+)
+CREATE INDEX "idxgames" ON "games" (
+	"game"
+)
+CREATE INDEX "idxprofile" ON "games" (
+	"profile"
+)
