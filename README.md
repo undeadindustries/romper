@@ -38,7 +38,6 @@ In the end, the simplest DB worked the best.
 The DB is created from MAME XML and INI files.
 There is a Golang app to create the DB. I'm not sure if this will be put on Github.
 I've been a developer for decades. But this is my first C++ app. (Be nice when reporting issues) 
-CMAKE is purposely not used. I may be used in the future.
 The m_ standard naming for variables is not used because almost everything is a member.
 
 
@@ -77,28 +76,31 @@ Now select which games you'd like to download and click RUN to start downloading
 
 ## Dependencies
 
-* 64bit (OS
+* 64bit amd/intel. Arm support soon
 * CPP17
 * WxWidgets
 * SQLiteCpp
+* AppImage for linux packaging
 
 ## Compiling
 
 * Soon, I'll create a sample .vscode folder.
-* Download libcurl4-openssl-dev
-* Download wxWidgets 3.2.1. Latest will probably work too.
-* For Linux: ../configure --enable-debug --with-opengl --with-gtk=3 --disable-shared --enable-webrequest 
-* make and make install
-* Windows and MacOS coming soon
+* For Linux: If you download and compile WxWidgets yourself. ../configure --enable-debug --with-opengl --with-gtk=3 --disable-shared --enable-webrequest && make && make install 
+* Windows, MacOS, and RaspberryPi Arm coming soon.
 
 ## Help
 
 I'll try to fix any issues you report.
-* But be cool.
+* Please be cool and understanding. This project is likely at the bottom of my priority list.
 * I am interested in help maintaining this. But unlikely to add any or many new features.
+* I would love help maintaining it.
 
 ## Version History
 
+* 2023-04-14
+    * Converted from VS Code Tasks to CMake.
+    * Using LinuxDistro AppImageTool to package.
+    * README.MD updates.
 * 2023-02-27
     * The first Linux 64 candidate.
     * README.MD.

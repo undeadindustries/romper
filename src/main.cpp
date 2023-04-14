@@ -37,7 +37,7 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 
 //Set version
-const std::string VERSION = "2023-4-11";
+const std::string VERSION = "2023-4-14";
 
 //Set default new line char for each OS.
 #ifdef _WIN32
