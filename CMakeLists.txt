@@ -23,7 +23,16 @@ endif()
 include(${wxWidgets_USE_FILE})
 include_directories(${SQLite3_INCLUDE_DIRS} ${SQLiteCpp_INCLUDE_DIRS})
 
-add_executable(romper src/main.cpp)
+
+if(APPLE)
+    add_executable(romper MACOSX_BUNDLE src/main.cpp)
+    set_target_properties(romper PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
+elseif(WIN32)
+    add_executable(romper WIN32 src/main.cpp main.exe.manifest)
+else()
+    add_executable(romper src/main.cpp)
+endif()
+
 target_link_libraries(romper ${wxWidgets_LIBRARIES} SQLiteCpp ${SQLite3_LIBRARIES})
 set_target_properties(romper PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
