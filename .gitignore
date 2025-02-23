@@ -36,6 +36,7 @@ src/.vscode/
 
 # Camke
 build/
+third_party/
 
 # AppImage
 romper.AppDir/

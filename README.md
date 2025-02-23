@@ -98,6 +98,10 @@ I'll try to fix any issues you report.
 
 ## Version History
 
+* 2025-02-23
+    * Rewrote the CMake and really the whole compile process.
+    * Fixed a few bugs during the search.
+    
 * 2023-04-14
     * Converted from VS Code Tasks to CMake.
     * Using LinuxDistro AppImageTool to package.
