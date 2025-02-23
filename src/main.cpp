@@ -7,8 +7,13 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #ifdef _WIN32
-#include <Windows.h>
+    #include <Windows.h>
 #endif
+#ifdef __APPLE__
+    #include <mach-o/dyld.h>
+    #include <stdexcept>
+#endif
+
 #include <iostream>
 #include <sys/stat.h>
 #include <string>
@@ -20,10 +25,20 @@
 #include <vector>
 #include <filesystem>
 
-//#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-#include <wx/wx.h>
+// Precompiled header support for wxWidgets
+#ifdef WX_PRECOMP
+    #include <wx/wxprec.h>
+#else
+    #include <wx/wx.h>
 #endif
+#include <wx/frame.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/button.h>
+#include <wx/choice.h>
+#include <wx/menu.h>
+#include <wx/menuitem.h>
 #include <wx/filefn.h>
 #include <wx/textfile.h>
 #include <wx/simplebook.h>
@@ -37,7 +52,7 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 
 //Set version
-const std::string VERSION = "2023-4-14";
+const std::string VERSION = "2025-2-23";
 
 //Set default new line char for each OS.
 #ifdef _WIN32
@@ -270,6 +285,18 @@ std::string getProfileDatabasePath()
         #ifdef _WIN32
             configDir = getenv("APPDATA");
             configDir += "\\Romper\\";
+        #elif defined(__APPLE__)
+            // macOS: ~/Library/Application Support/Romper/
+            const char* homeEnv = std::getenv("HOME");
+            if (homeEnv && *homeEnv)
+            {
+                configDir = std::string(homeEnv) + "/Library/Application Support/Romper/";
+            }
+            else
+            {
+                // Fallback if HOME is not set (rare in normal user sessions)
+                configDir = "./Romper/";
+            }
         #else
             configDir = getenv("HOME");
             configDir += "/.Romper/";
@@ -311,8 +338,28 @@ bool MyApp::OnInit()
         if (profileDBFile == "") {
             return false;
         }
-        //std::string profileDBFile = romperFolder + "/romper_data/profiles.romper";
-        std::string gameDBFile = romperFolder + "/romper_data/romper.romper";
+        //std::string gameDBFile = romperFolder + "/romper_data/romper.romper";
+                // Game database:
+        std::string gameDBFile;
+        #ifdef __APPLE__
+        
+            // We'll compute our actual executable path via _NSGetExecutablePath().
+            // The typical layout is: /MyApp.app/Contents/MacOS/romper
+            {
+                uint32_t bufSize = 0;
+                _NSGetExecutablePath(nullptr, &bufSize);
+                std::vector<char> pathBuf(bufSize + 1, '\0');
+                _NSGetExecutablePath(pathBuf.data(), &bufSize);
+                std::filesystem::path exeDir = std::filesystem::canonical(pathBuf.data());
+                std::filesystem::path resourcesPath = exeDir.parent_path().parent_path() / "Resources";
+                gameDBFile = (resourcesPath / "romper.romper").string();
+            }
+        #else
+            // On other platforms, fallback to your existing approach:
+            std::string gameDBFile = romperFolder + "/romper_data/romper.romper";
+        #endif
+        std::cout << "Profile DB: " << profileDBFile << std::endl;
+        std::cout << "Game DB: " << gameDBFile << std::endl;
         MyFrame *frame = new MyFrame("Romper", wxPoint(50, 50), wxSize(800, 600), profileDBFile, gameDBFile);
         frame->Refresh();
         frame->Show(true);
@@ -408,16 +455,16 @@ void MyFrame::BuildGrid(const std::string &orderDirection, const std::string &or
         wxMenuItemList mr = menuRank->GetMenuItems();
         for (wxMenuItemList::iterator i = mr.begin(); i != mr.end(); ++i)
         {
-            if (!i.m_node->GetData()->IsChecked())
+            if (!(*i)->IsChecked())
             {
                 notInRank = true;
-                if (i.m_node->GetData()->GetItemLabelText().ToStdString() == "Blank")
+                if ((*i)->GetItemLabelText().ToStdString() == "Blank")
                 {
                     rankTempSQL.append("\"\",");
                 }
                 else
                 {
-                    rankTempSQL.append("\"" + i.m_node->GetData()->GetItemLabelText().ToStdString() + "\",");
+                    rankTempSQL.append("\"" + (*i)->GetItemLabelText().ToStdString() + "\",");
                 }
             }
         }
@@ -441,16 +488,16 @@ void MyFrame::BuildGrid(const std::string &orderDirection, const std::string &or
         wxMenuItemList mg = menuGenre->GetMenuItems();
         for (wxMenuItemList::iterator i = mg.begin(); i != mg.end(); ++i)
         {
-            if (!i.m_node->GetData()->IsChecked())
+            if (!(*i)->IsChecked())
             {
                 notInGenre = true;
-                if (i.m_node->GetData()->GetItemLabelText().ToStdString() == "Blank")
+                if ((*i)->GetItemLabelText().ToStdString() == "Blank")
                 {
                     genreTempSQL.append("\"\",");
                 }
                 else
                 {
-                    genreTempSQL.append("\"" + i.m_node->GetData()->GetItemLabelText().ToStdString() + "\",");
+                    genreTempSQL.append("\"" + (*i)->GetItemLabelText().ToStdString() + "\",");
                 }
             }
         }
@@ -660,13 +707,19 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size, 
             {
                 s = "Blank";
             }
-            menuRank->AppendCheckItem(wxID_ANY, s, s);
+
+            wxWindowID itemId = wxWindow::NewControlId();
+            wxMenuItem* item = menuRank->AppendCheckItem(itemId, s, s);
+            item->Check(true);
+            Bind(wxEVT_MENU, &MyFrame::OnSearch, this, itemId);
         }
+        /* Making sure my new code works before deleting.
         wxMenuItemList mr = menuRank->GetMenuItems();
         for (wxMenuItemList::iterator i = mr.begin(); i != mr.end(); ++i)
         {
-            i.m_node->GetData()->Check(true);
+            (*i)->Check(true);
         }
+            */
     }
     catch (std::exception &e)
     {
@@ -689,13 +742,18 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size, 
             {
                 s = "Blank";
             }
-            menuGenre->AppendCheckItem(wxID_ANY, s, s);
+            wxWindowID itemId = wxWindow::NewControlId();
+            wxMenuItem* item = menuGenre->AppendCheckItem(itemId, s, s);
+            item->Check(true);
+            Bind(wxEVT_MENU, &MyFrame::OnSearch, this, itemId);
         }
+        /* Making sure my new code works before deleting.
         wxMenuItemList mg = menuGenre->GetMenuItems();
         for (wxMenuItemList::iterator i = mg.begin(); i != mg.end(); ++i)
         {
-            i.m_node->GetData()->Check(true);
+            (*i)->Check(true);
         }
+            */
     }
     catch (std::exception &e)
     {
@@ -1031,12 +1089,12 @@ void MyFrame::OnProfileChange(wxCommandEvent &event)
         wxMenuItemList mr = menuRank->GetMenuItems();
         for (wxMenuItemList::iterator i = mr.begin(); i != mr.end(); ++i)
         {
-            i.m_node->GetData()->Check(true);
+            (*i)->Check(true);
         }
         wxMenuItemList mg = menuGenre->GetMenuItems();
         for (wxMenuItemList::iterator i = mg.begin(); i != mg.end(); ++i)
         {
-            i.m_node->GetData()->Check(true);
+            (*i)->Check(true);
         }
         BuildGrid("asc", "Description", searchBy->GetStringSelection().ToStdString(), "", 1, perPage->GetStringSelection().ToStdString());
     }
@@ -1671,7 +1729,7 @@ bool MyFrame::DownloadGame(gameMap game, const char *type, const std::string url
         if (!downloading)
         {
             wxWebRequest request;
-            if (type == "rom")
+            if (std::string(type) == "rom")
             {
                 request = wxWebSession::GetDefault().CreateRequest(this, url + game.name + ".zip");
             }
@@ -1691,7 +1749,7 @@ bool MyFrame::DownloadGame(gameMap game, const char *type, const std::string url
                                 done = true;
                                 wxInputStream *istream = evt.GetResponse().GetStream();
                                 if( istream->IsOk() ) {
-                                    if (type == "rom") {
+                                    if (std::string(type) == "rom") {
                                         wxFileOutputStream ostream( profile_map[profileChoice->choice->GetStringSelection().ToStdString()].romTarget + "/" + game.name+".zip" );
                                         if( ostream.IsOk() ) {
                                         ostream.Write( *istream );
