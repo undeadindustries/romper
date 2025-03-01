@@ -101,6 +101,7 @@ I'll try to fix any issues you report.
 * 2025-02-23
     * Rewrote the CMake and really the whole compile process.
     * Fixed a few bugs during the search.
+    * removed macos intel and replaced with apple silicon. Will soon update to a universal binary.
     
 * 2023-04-14
     * Converted from VS Code Tasks to CMake.

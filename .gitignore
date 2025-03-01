@@ -40,3 +40,7 @@ third_party/
 
 # AppImage
 romper.AppDir/
+
+# Ignore macOS Finder files
+.DS_Store
+**/.DS_Store
