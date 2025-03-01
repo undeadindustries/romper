@@ -83,8 +83,17 @@ if(APPLE)
         OUTPUT_VARIABLE WX_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
+    # Keep only major.minor (e.g. "3.3.0" -> "3.3", "3.3.1" -> "3.3")
+    if(WX_VERSION MATCHES "^([0-9]+\\.[0-9]+)")
+        set(WX_VERSION ${CMAKE_MATCH_1})
+    endif()
+
     set(WX_SETUP_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/third_party/wxWidgets_install/lib/wx/include/osx_cocoa-unicode-static-${WX_VERSION}")
     target_include_directories(romper PRIVATE ${WX_SETUP_INCLUDE_DIR})
+
+    add_custom_target(print_wx_setup_include_dir ALL
+        COMMAND ${CMAKE_COMMAND} -E echo "WX_SETUP_INCLUDE_DIR = ${WX_SETUP_INCLUDE_DIR}"
+    )
 endif()
 
 target_include_directories(romper PRIVATE 
